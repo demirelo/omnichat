@@ -43,7 +43,7 @@ Beyond just aggregation, OmniChat integrates a powerful **AI Assistant** powered
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/demirelo/omnichat-electron.git
+   git clone https://github.com/demirelo/omnichat.git
    ```
 2. Install dependencies:
    ```bash
