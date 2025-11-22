@@ -1,30 +1,66 @@
-# React + TypeScript + Vite
+# OmniChat
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+OmniChat is a "MacOS native-like" application that unifies your messaging experience. It aggregates **Slack**, **Discord**, and **Telegram** into a single, sleek interface, allowing you to switch between services seamlessly without cluttering your desktop with multiple windows.
 
-Currently, two official plugins are available:
+Beyond just aggregation, OmniChat integrates a powerful **AI Assistant** powered by Google's **Gemini 2.5 Flash Lite**, offering advanced features like in-context message refinement and a dedicated chat interface.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+### 1. Unified Messaging Interface
+- **All-in-One**: Access Slack, Discord, and Telegram from a single window.
+- **Sidebar Navigation**: Switch between services instantly with a click.
+- **Session Persistence**: Stay logged in across app restarts.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+### 2. "Slick" Native UI
+- **Glassmorphism**: Modern, translucent design with blur effects that feels right at home on macOS.
+- **Dark Mode**: Deep dark theme (`bg-gray-950`) for reduced eye strain.
+- **Smooth Animations**: Polished transitions and hover effects.
 
-- Configure the top-level `parserOptions` property like this:
+### 3. Advanced AI Integration (Gemini)
+- **General Chat**: A dedicated AI Assistant panel powered by **Gemini 2.5 Flash Lite** for high-speed queries and assistance.
+- **"Refine with AI"**: Right-click on any text input in your messaging apps to instantly polish, fix grammar, or rewrite your message using AI.
+- **Secure**: Your API keys are stored locally on your device.
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+### 4. Smart Notifications
+- **Unified Badges**: See unread counts for all services directly in the sidebar.
+- **Advanced Polling**: Intelligent detection ensures accurate unread counts for Telegram, even when the window title doesn't update.
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+## Technical Stack
+
+- **Electron**: Desktop shell.
+- **React**: UI and component management.
+- **TypeScript**: Type-safe development.
+- **Tailwind CSS v4**: Modern, utility-first styling.
+- **Vite**: Lightning-fast build tool.
+
+## Getting Started
+
+### Prerequisites
+- Node.js installed.
+- A Google Gemini API Key (get one from Google AI Studio).
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/demirelo/omnichat-electron.git
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Run in development mode:
+   ```bash
+   npm run dev
+   ```
+4. Build for production:
+   ```bash
+   npm run build
+   ```
+
+## About
+
+OmniChat was built to solve the fragmentation of modern communication. By bringing your most essential chat tools under one roof and augmenting them with AI, it streamlines your workflow and keeps you focused.
+
+---
+*Built with ❤️ by the OmniChat Team*
