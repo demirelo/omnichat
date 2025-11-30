@@ -63,6 +63,26 @@ app.on('web-contents-created', (_, contents) => {
   })
 
   if (contents.getType() === 'webview') {
+    // Handle navigation within webview (e.g., clicking links)
+    contents.on('will-navigate', (event, url) => {
+      // Get the current URL to check if this is navigation to external domain
+      const currentURL = contents.getURL()
+
+      try {
+        const currentDomain = new URL(currentURL).hostname
+        const targetDomain = new URL(url).hostname
+
+        // If navigating to a different domain, open in external browser
+        if (currentDomain !== targetDomain) {
+          event.preventDefault()
+          shell.openExternal(url)
+        }
+      } catch (err) {
+        // If URL parsing fails, just let it navigate normally
+        console.error('URL parsing error:', err)
+      }
+    })
+
     contents.on('context-menu', (_, params) => {
       const menu = new Menu()
 
