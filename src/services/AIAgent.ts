@@ -29,7 +29,7 @@ export class AIAgent {
         const profile = memoryService.getUserProfile();
 
         const prompt = `
-      You are a helpful AI assistant embedded in a chat aggregator.
+      You are a helpful Personal AI Assistant embedded in a chat aggregator.
       
       User Profile:
       ${JSON.stringify(profile.facts)}
@@ -38,8 +38,8 @@ export class AIAgent {
       ${messages.map(m => `[${m.platform}] ${m.content}`).join('\n')}
       
       Task:
-      1. Identify any new facts about the user (e.g., "I am a python dev") and output them as "FACT: <fact>".
-      2. If there is something urgent or actionable, output "ACTION: <suggestion>".
+      1. Identify any new facts about the user (e.g., "I am a python dev", "I like dark mode") and output them as "FACT: <fact>".
+      2. If there is something urgent or actionable (e.g. someone asking a direct question to the user), output "ACTION: <suggestion>".
       3. Otherwise, just output "OK".
     `;
 
@@ -73,7 +73,17 @@ export class AIAgent {
 
         const messages = memoryService.getRecentMessages(50);
         const prompt = `
-        Summarize the following chat logs for the user. Group by topic if possible.
+        You are a Personal AI Assistant. 
+        Summarize the following chat logs for the user. 
+        
+        **Instructions:**
+        - **IGNORE** any text that looks like UI elements (e.g., "Nitro", "Shop", "Streamer Mode", "Online", "Members").
+        - Focus **ONLY** on human conversation.
+        - Group by topic/project.
+        - Use **Bold** for key entities or decisions.
+        - Use bullet points for readability.
+        - If there are action items, list them under a separate "### Action Items" header.
+        - Keep it professional but conversational.
         
         Messages:
         ${messages.map(m => `[${m.platform}] ${m.content}`).join('\n')}

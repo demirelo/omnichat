@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, Disc, Send, Sparkles, Settings } from 'lucide-react';
+import { MessageSquare, Disc, Send, Sparkles, Settings, Mail } from 'lucide-react';
 
 interface SidebarProps {
     activeService: string;
@@ -13,6 +13,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeService, onServiceChange
         { id: 'slack', icon: MessageSquare, color: 'text-purple-400', label: 'Slack' },
         { id: 'discord', icon: Disc, color: 'text-indigo-400', label: 'Discord' },
         { id: 'telegram', icon: Send, color: 'text-blue-400', label: 'Telegram' },
+        { id: 'gmail', icon: Mail, color: 'text-red-400', label: 'Gmail' },
     ];
 
     return (

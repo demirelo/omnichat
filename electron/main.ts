@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, MenuItem } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, MenuItem, shell } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { GoogleGenerativeAI } from '@google/generative-ai'
@@ -33,6 +33,14 @@ function createWindow() {
     height: 800,
   })
 
+  // Handle links opening from the main window (renderer)
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('https:') || url.startsWith('http:')) {
+      shell.openExternal(url)
+    }
+    return { action: 'deny' }
+  })
+
   win.webContents.on('did-finish-load', () => {
     win?.webContents.send('main-process-message', (new Date).toLocaleString())
   })
@@ -46,6 +54,14 @@ function createWindow() {
 
 // Handle Context Menu for WebViews
 app.on('web-contents-created', (_, contents) => {
+  // Handle links opening from webviews
+  contents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('https:') || url.startsWith('http:')) {
+      shell.openExternal(url)
+    }
+    return { action: 'deny' }
+  })
+
   if (contents.getType() === 'webview') {
     contents.on('context-menu', (_, params) => {
       const menu = new Menu()

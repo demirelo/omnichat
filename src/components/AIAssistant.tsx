@@ -1,6 +1,8 @@
 import React from 'react';
 import { Send, Bot, Copy, User, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { aiAgent } from '../services/AIAgent';
 
 interface AIAssistantProps {
@@ -108,7 +110,27 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ userName, apiKey }) =>
                                 : 'bg-gray-800 text-gray-100 rounded-tl-none border border-white/5'
                             }`}>
                             {msg.role === 'error' && <AlertCircle size={16} className="inline-block mr-2 mb-1" />}
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
+                            <div className="prose prose-invert prose-sm max-w-none leading-relaxed">
+                                {msg.role === 'assistant' ? (
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                            a: ({ node, ...props }) => (
+                                                <a
+                                                    {...props}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-400 hover:underline cursor-pointer"
+                                                />
+                                            )
+                                        }}
+                                    >
+                                        {msg.content}
+                                    </ReactMarkdown>
+                                ) : (
+                                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                                )}
+                            </div>
                             {msg.role === 'assistant' && (
                                 <div className="mt-3 flex gap-2">
                                     <button
