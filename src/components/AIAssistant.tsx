@@ -1,6 +1,9 @@
 import React from 'react';
-import { Send, Bot, Copy, User, Loader2, AlertCircle } from 'lucide-react';
+import { Send, Bot, Copy, User, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { aiAgent } from '../services/AIAgent';
 
 interface AIAssistantProps {
     userName?: string;
@@ -28,6 +31,12 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ userName, apiKey }) =>
         setIsTyping(true);
 
         try {
+            // Use the shared agent if initialized, or fallback to direct call (though agent should be init)
+            // For consistency, we should probably move all logic to AIAgent, but for now we keep direct chat here
+            // and use AIAgent for background tasks/summaries.
+            // Actually, let's use the agent for everything if possible, but the agent class I wrote
+            // is designed for background processing. Let's just use it for "Catch Up" for now.
+
             const genAI = new GoogleGenerativeAI(apiKey);
             const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
@@ -36,6 +45,10 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ userName, apiKey }) =>
             const text = response.text();
 
             setMessages(prev => [...prev, { role: 'assistant', content: text }]);
+
+            // Also feed this interaction to memory? 
+            // memoryService.addMessage('user', userMessage); // Optional
+
         } catch (error: any) {
             console.error("Gemini Error:", error);
             const errorMessage = error.message || 'Unknown error occurred';
@@ -45,16 +58,46 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ userName, apiKey }) =>
         }
     };
 
+    React.useEffect(() => {
+        if (apiKey) {
+            aiAgent.init(apiKey);
+        }
+    }, [apiKey]);
+
+    const handleCatchUp = async () => {
+        if (!apiKey) return;
+        setIsTyping(true);
+        try {
+            const summary = await aiAgent.getSummary();
+            setMessages(prev => [...prev, { role: 'assistant', content: `**Catch Up Summary:**\n\n${summary}` }]);
+        } catch (err) {
+            setMessages(prev => [...prev, { role: 'error', content: 'Failed to generate summary.' }]);
+        } finally {
+            setIsTyping(false);
+        }
+    };
+
     return (
         <div className="flex flex-col h-full w-full bg-gray-900 text-white">
-            <div className="flex items-center p-4 border-b border-white/10 bg-gray-900/50 backdrop-blur-md">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center shadow-lg shadow-pink-500/20 mr-3">
-                    <Bot className="w-6 h-6 text-white" />
+            <div className="flex items-center p-4 border-b border-white/10 bg-gray-900/50 backdrop-blur-md justify-between">
+                <div className="flex items-center">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center shadow-lg shadow-pink-500/20 mr-3">
+                        <Bot className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                        <h2 className="font-semibold text-lg">AI Assistant</h2>
+                        <p className="text-xs text-gray-400">Powered by Gemini</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 className="font-semibold text-lg">AI Assistant</h2>
-                    <p className="text-xs text-gray-400">Powered by Gemini</p>
-                </div>
+                <button
+                    onClick={handleCatchUp}
+                    disabled={isTyping || !apiKey}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-medium transition-colors border border-white/10 disabled:opacity-50"
+                    title="Summarize recent chats"
+                >
+                    <RefreshCw size={14} />
+                    Catch Up
+                </button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -67,7 +110,27 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ userName, apiKey }) =>
                                 : 'bg-gray-800 text-gray-100 rounded-tl-none border border-white/5'
                             }`}>
                             {msg.role === 'error' && <AlertCircle size={16} className="inline-block mr-2 mb-1" />}
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
+                            <div className="prose prose-invert prose-sm max-w-none leading-relaxed">
+                                {msg.role === 'assistant' ? (
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                            a: ({ node, ...props }) => (
+                                                <a
+                                                    {...props}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-400 hover:underline cursor-pointer"
+                                                />
+                                            )
+                                        }}
+                                    >
+                                        {msg.content}
+                                    </ReactMarkdown>
+                                ) : (
+                                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                                )}
+                            </div>
                             {msg.role === 'assistant' && (
                                 <div className="mt-3 flex gap-2">
                                     <button

@@ -1,4 +1,6 @@
 import React from 'react';
+import { getScraperScript } from '../services/MessageScraper';
+import { memoryService } from '../services/MemoryService';
 
 interface ServiceViewProps {
     id: string;
@@ -33,7 +35,27 @@ export const ServiceView: React.FC<ServiceViewProps> = ({ id, url, isActive, use
                     const count = match ? parseInt(match[1], 10) : 0;
                     onUnreadUpdate(id, count);
                 }
+
+                // Inject Message Scraper
+                // We cast to any because executeJavaScript might not be in the type definition for React ref
+                (webview as any).executeJavaScript(getScraperScript(id));
             });
+
+            const handleConsoleMessage = (e: any) => {
+                const msg = e.message || '';
+                if (msg.startsWith('__OMNICHAT_MSG__:')) {
+                    try {
+                        const data = JSON.parse(msg.substring('__OMNICHAT_MSG__:'.length));
+                        if (data.type === 'new_message' || data.type === 'new_text') {
+                            memoryService.addMessage(id, data.content);
+                        }
+                    } catch (err) {
+                        // console.error('Failed to parse scraper message', err);
+                    }
+                }
+            };
+
+            webview.addEventListener('console-message', handleConsoleMessage);
 
             // Polling for Telegram (since it doesn't update title reliably)
             let pollInterval: NodeJS.Timeout;
@@ -62,6 +84,7 @@ export const ServiceView: React.FC<ServiceViewProps> = ({ id, url, isActive, use
 
             return () => {
                 webview.removeEventListener('page-title-updated', handleTitleUpdate);
+                webview.removeEventListener('console-message', handleConsoleMessage);
                 if (pollInterval) clearInterval(pollInterval);
             };
         }
