@@ -65,6 +65,8 @@ app.on('web-contents-created', (_, contents) => {
   if (contents.getType() === 'webview') {
     // Handle navigation within webview (e.g., clicking links)
     contents.on('will-navigate', (event, url) => {
+      console.log('will-navigate triggered:', url)
+
       // Get the current URL to check if this is navigation to external domain
       const currentURL = contents.getURL()
 
@@ -72,8 +74,11 @@ app.on('web-contents-created', (_, contents) => {
         const currentDomain = new URL(currentURL).hostname
         const targetDomain = new URL(url).hostname
 
+        console.log('Current domain:', currentDomain, 'Target domain:', targetDomain)
+
         // If navigating to a different domain, open in external browser
         if (currentDomain !== targetDomain) {
+          console.log('Opening external URL in browser:', url)
           event.preventDefault()
           shell.openExternal(url)
         }

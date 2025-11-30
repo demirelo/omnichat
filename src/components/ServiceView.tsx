@@ -39,6 +39,46 @@ export const ServiceView: React.FC<ServiceViewProps> = ({ id, url, isActive, use
                 // Inject Message Scraper
                 // We cast to any because executeJavaScript might not be in the type definition for React ref
                 (webview as any).executeJavaScript(getScraperScript(id));
+
+                // Inject link click interceptor
+                (webview as any).executeJavaScript(`
+                    (function() {
+                        console.log('Link click interceptor loaded');
+                        
+                        // Intercept all clicks
+                        document.addEventListener('click', function(e) {
+                            // Find the closest anchor tag
+                            let target = e.target;
+                            while (target && target.tagName !== 'A') {
+                                target = target.parentElement;
+                            }
+                            
+                            if (target && target.tagName === 'A') {
+                                const href = target.href;
+                                console.log('Link clicked:', href);
+                                
+                                // Check if it's an external link
+                                if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                                    const currentDomain = window.location.hostname;
+                                    try {
+                                        const targetDomain = new URL(href).hostname;
+                                        
+                                        if (currentDomain !== targetDomain) {
+                                            console.log('External link detected, preventing default and opening externally:', href);
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            
+                                            // Send message to open in external browser
+                                            window.open(href, '_blank');
+                                        }
+                                    } catch (err) {
+                                        console.error('Error parsing URL:', err);
+                                    }
+                                }
+                            }
+                        }, true); // Use capture phase to catch before Slack's handlers
+                    })();
+                `);
             });
 
             const handleConsoleMessage = (e: any) => {
