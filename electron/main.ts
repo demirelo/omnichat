@@ -56,7 +56,9 @@ function createWindow() {
 app.on('web-contents-created', (_, contents) => {
   // Handle links opening from webviews
   contents.setWindowOpenHandler(({ url }) => {
+    console.log('setWindowOpenHandler triggered with URL:', url)
     if (url.startsWith('https:') || url.startsWith('http:')) {
+      console.log('Opening in external browser:', url)
       shell.openExternal(url)
     }
     return { action: 'deny' }
@@ -67,24 +69,38 @@ app.on('web-contents-created', (_, contents) => {
     contents.on('will-navigate', (event, url) => {
       console.log('will-navigate triggered:', url)
 
-      // Get the current URL to check if this is navigation to external domain
+      // Get the current URL
       const currentURL = contents.getURL()
+      console.log('Current URL:', currentURL)
 
-      try {
-        const currentDomain = new URL(currentURL).hostname
-        const targetDomain = new URL(url).hostname
+      // If the URL is absolute (starts with http/https), check if we should open externally
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        try {
+          const currentDomain = new URL(currentURL).hostname
+          const targetDomain = new URL(url).hostname
 
-        console.log('Current domain:', currentDomain, 'Target domain:', targetDomain)
+          console.log('Current domain:', currentDomain, 'Target domain:', targetDomain)
 
-        // If navigating to a different domain, open in external browser
-        if (currentDomain !== targetDomain) {
-          console.log('Opening external URL in browser:', url)
-          event.preventDefault()
-          shell.openExternal(url)
+          // Open ALL external links in browser, including same-domain links that go outside the app
+          // Only allow navigation if it's the initial load or to the same base path
+          const isInitialLoad = !currentURL || currentURL === 'about:blank'
+          const isSameDomain = currentDomain === targetDomain
+          const isAppPath = isSameDomain && (
+            url.includes('/client') || // Slack
+            url.includes('/app') ||  // Discord
+            url.includes('/k/') // Telegram
+          )
+
+          if (!isInitialLoad && !isAppPath) {
+            console.log('Opening external URL in browser:', url)
+            event.preventDefault()
+            shell.openExternal(url)
+          } else {
+            console.log('Allowing navigation:', url)
+          }
+        } catch (err) {
+          console.error('URL parsing error:', err)
         }
-      } catch (err) {
-        // If URL parsing fails, just let it navigate normally
-        console.error('URL parsing error:', err)
       }
     })
 
